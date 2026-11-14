@@ -14,6 +14,9 @@ loads. Everything procedural lives in a skill.
   needs it. A command with no flags gets one line. I read these to learn.
 - Explain in plain language first. I ask for code or depth when I want it.
 - Stay on the issue at hand. Do not bundle notes about other bugs or branches.
+- When you need my decision on a UI change, show the options side by side in
+  an Artifact page. Publish the page once, then republish my changes to the
+  same link. Record my decisions in the markdown notes, not only in the page.
 
 ## Workflow
 
@@ -45,3 +48,5 @@ Understand, then test, then build. Never change this order.
 - Prefer the LSP tools for definitions, references, and diagnostics when a
   language server plugin is installed.
 - Read only the files a task needs.
+- When you hand me a command that installs a program on my machine, add the
+  program to `TOOLS.md` in `~/Desktop/projects/rax-claude-config`.
