@@ -98,6 +98,10 @@ Never run an unscoped `bun test`, and always pass `--timeout=60000`. Run one or
 two test files at a time. When the step needs more, say so instead of running
 `./run bun run test:parallel`. Leave the type check to the code-reviewer agent.
 
+Fix every lint error in the code you wrote. Never add to
+`eslint-suppressions.json`, and never run eslint with `--suppress-all` or
+`--suppress-rule`: the file only freezes old violations.
+
 # Before reporting done
 
 - Every test the step names ran, and you saw the result you report.

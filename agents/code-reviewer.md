@@ -45,6 +45,13 @@ reasoning in the message.
   `[Types]` finding.
 - A new `eslint-disable` or `@ts-expect-error` with no reason on the same line
   is a `[Lint]` finding.
+- A diff that adds a file or a rule to `eslint-suppressions.json`, or raises a
+  count in it, is a `[Lint]` finding. The file freezes old violations so they
+  can be paid down; a new violation gets fixed, never frozen. Only
+  `./run bun run lint:prune` shrinks the file.
+- When the change adds or moves code between a handler and an external call,
+  run the hop budget check, `./run bun run hops:check`, and report every path
+  over budget as an `[Architecture]` finding.
 
 Beyond lint and types, your job is what a linter can't see. Each heading below
 ends with the tag its findings carry.
@@ -101,6 +108,10 @@ ends with the tag its findings carry.
 
 - A new package with no stated reason. Every dependency is attack surface.
 - A version range (`^`, `~`) instead of an exact pin.
+- A workspace package on a different version of a shared dependency than the
+  rest of the repo. Grep the other `package.json` files for the dependency.
+- A `package.json` dependency change with no matching `bun.lock` change in the
+  diff. CI's install fails on a lockfile that is out of date.
 
 ## Testability [Tests]
 
