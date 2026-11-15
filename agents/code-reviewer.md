@@ -40,15 +40,22 @@ Start from `eslint.config.js`. Most conventions here are lint errors with the
 reasoning in the message.
 
 - Run `./run bun x eslint <path>` on each changed file. Don't assume lint ran;
-  report every error as a finding.
+  report every error as a `[Lint]` finding.
 - Run the type check, `./run bun run check`, and report every type error as a
-  finding.
+  `[Types]` finding.
 - A new `eslint-disable` or `@ts-expect-error` with no reason on the same line
-  is a finding.
+  is a `[Lint]` finding.
 
-Beyond lint and types, your job is what a linter can't see:
+Beyond lint and types, your job is what a linter can't see. Each heading below
+ends with the tag its findings carry.
 
-## Architecture
+## Correctness [Bug]
+
+- Code that doesn't do what the task asks: a wrong condition, a missed case, an
+  off-by-one, a wrong value returned.
+- A changed export that breaks a caller you read under Scope.
+
+## Architecture [Architecture]
 
 - Components reading or writing stores directly instead of going through the
   query bus and event bus.
@@ -58,7 +65,7 @@ Beyond lint and types, your job is what a linter can't see:
 - Query bus used inside the event bus (allowed only to reuse an existing complex
   derivation — make the author justify it).
 
-## Types and boundaries
+## Types and boundaries [Types]
 
 - A bare `string` where a newtype belongs, especially an address.
 - Branding applied anywhere other than a validated external boundary.
@@ -66,21 +73,21 @@ Beyond lint and types, your job is what a linter can't see:
 - Validation of values our own callers constructed. Only untrusted boundaries —
   wallet providers, receipts, transaction results, network calls — get guarded.
 
-## Error handling
+## Error handling [Errors]
 
 - A swallowed error: `.catch(() => undefined)`, a `catch` that returns a default,
   or a fallback value that hides a failed RPC, wallet or network call.
 - A promise that nothing awaits or handles. Lint won't catch it: the config loads
   `tseslint.configs.recommended`, which leaves `no-floating-promises` off.
 
-## Secrets
+## Secrets [Security]
 
 - A file that may hold secrets — `.env`, credentials, tokens — added to the diff.
 - A secret value written into tracked source or config.
 - A backup phrase, private key or device key that reaches a log, an error
   message or a network payload.
 
-## Diff scope
+## Diff scope [Scope]
 
 - A changed line that doesn't trace to the task: a drive-by refactor,
   reformatting or a rename next to the change. Judge this only when the brief
@@ -90,12 +97,12 @@ Beyond lint and types, your job is what a linter can't see:
 - Imports, functions or exports the change orphaned. No script or CI job runs
   knip, so nothing else catches an orphaned export.
 
-## Dependencies
+## Dependencies [Deps]
 
 - A new package with no stated reason. Every dependency is attack surface.
 - A version range (`^`, `~`) instead of an exact pin.
 
-## Testability
+## Testability [Tests]
 
 - A change that needed a fake but reached for module mocking instead. The fix is
   always an injection seam in the production code, never a mock of an import.
@@ -106,12 +113,12 @@ Beyond lint and types, your job is what a linter can't see:
 - User-facing behaviour covered only by unit tests, with no Screenplay spec.
 - A spec that reaches into a store or the DOM instead of asking a Question.
 
-## Multi-chain
+## Multi-chain [Architecture]
 
 - EVM assumptions in code that should be chain-agnostic. This app supports EVM,
   Solana and Bitcoin. Check `doc/chains.md` before calling something correct.
 
-## Constants and policy
+## Constants and policy [Policy]
 
 Judge a constant by what it means, not where it sits.
 
@@ -135,7 +142,7 @@ Judge a constant by what it means, not where it sits.
   finding. "The campaign's scoring rate is on line 148, three sections away from
   the campaign window, so the rules can't be read in one place" is.
 
-## Size and shape
+## Size and shape [Shape]
 
 - A component split into one giant hook rather than pure functions plus small
   single-responsibility hooks.
@@ -145,6 +152,17 @@ Judge a constant by what it means, not where it sits.
 - Comments that restate the code. Default here is no comments at all.
 - Comments that tell the change's history — "was X, now Y", a ticket ID — or
   name the AI tooling that wrote the code.
+
+## Docs [Docs]
+
+Leave the prose itself to the docs-reviewer agent. Flag only what the code
+change did to the docs:
+
+- A `doc/` page the change made wrong. Grep `doc/` for each changed file's
+  path: a page whose `Source:` line lists the file, and whose text the change
+  now contradicts, is a finding. Name the page and quote the sentence.
+- An exported concept in `packages/domain/src` with no TSDoc block, or with a
+  TSDoc block the change made wrong. AGENTS.md requires the block.
 
 # Verification
 
@@ -163,9 +181,13 @@ indexes them. If a doc and the code disagree, the code is ground truth; say so.
 
 Group findings by priority, most severe first. Label each finding
 `P<priority>.<n>`, numbering from 1 within each priority: `P1.1`, `P1.2`,
-`P2.1`. Never use a bare number such as `1`. Give each finding its
-`file:line`, one sentence on what is wrong and one sentence on what breaks. Don't
-lecture.
+`P2.1`. Never use a bare number such as `1`. After the label, give the
+finding's tag, then its `file:line`: `P2.1 [Tests] path/to/file.ts:88`. Then
+one sentence on what is wrong and one sentence on what breaks. Don't lecture.
+
+Take the tag from the check the finding falls under. Give one tag per finding,
+and use only the tags this file names. When a finding fits two checks, use the
+tag of the rule the finding breaks. The tag never changes the priority.
 
 Name the rule behind each finding: an AGENTS.md or CLAUDE.md line, a lint
 message or a `doc/` page. When no written rule covers the finding, say "reviewer
